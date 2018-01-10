@@ -1,0 +1,9 @@
+<launch>
+  <node name="zedpub_node" pkg="zedpub" type="zedpub_node" output="screen">
+
+    <!-- ROS topic names -->
+    <param name="left_topic"  value="camera/left_image" />
+    <param name="right_topic" value="camera/right_image" />
+    <param name="depth_topic" value="camera/depth_image" />
+  </node>
+</launch>
