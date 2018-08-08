@@ -32,7 +32,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 import filehandler as fh
 
 
-def extract_images(msg, index, dirout):
+def store_image(msg, index, dirout):
     """ Extract images from bag """
     bridge = CvBridge()
     cv_img = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -80,31 +80,32 @@ def main(bagname):
         dirout = fh.mkdir_from_file(bagname)
         logger.info('Reading bag %s' % bagname)
         bag = rosbag.Bag(bagname)
+        logger.info(bag.get_type_and_topic_info())
 
         # check whether exists IMU data
         tpimu, tpcam = get_topics(bag)
         if tpimu:
             fout = open(join(dirout, 'imu_data.txt'), 'w')
-        dcam = {}
+
+        dcam, dindex = {}, {}
         for cam_t in tpcam:
             fname = cam_t.split('/')[-1]+'.tmp'
             dirtp = fh.mkdir_from_file(join(dirout, fname))
             dcam[cam_t] = dirtp
-
+            dindex[cam_t] = 0
+    
         bagcontents = bag.read_messages()
-        imumsg = ''
-        index = 0
         for topic, msg, timestamp in bagcontents:
             if topic == tpimu:
-                imumsg = msg
+                imu_str = extract_imu_data(msg)
+                fout.write('%s %s\n' % (impath, imu_str))
             elif topic in tpcam:
-                impath = extract_images(msg, index, dcam[topic])
-                if topic == tpcam[0]:
-                    imu_str = extract_imu_data(imumsg)
-                    fout.write('%s %s\n' % (impath, imu_str))
-                    index += 1
-                if index == 5:
-                    break
+                index = dindex[topic]
+                impath = store_image(msg, index, dcam[topic])
+                #if topic == tpcam[0]:
+                #    imu_str = extract_imu_data(imumsg)
+                #    fout.write('%s %s\n' % (impath, imu_str))
+                dindex[topic] += 1
         logger.info("Finished!\nSaved %d images in total" % index)
     else:
         logger.error('File %s is not a .bag file')
