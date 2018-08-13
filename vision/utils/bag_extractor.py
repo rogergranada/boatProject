@@ -95,16 +95,16 @@ def main(bagname):
             dindex[cam_t] = 0
     
         bagcontents = bag.read_messages()
+        imumsg = ''
         for topic, msg, timestamp in bagcontents:
             if topic == tpimu:
-                imu_str = extract_imu_data(msg)
-                fout.write('%s %s\n' % (impath, imu_str))
+                imumsg = msg
             elif topic in tpcam:
                 index = dindex[topic]
                 impath = store_image(msg, index, dcam[topic])
-                #if topic == tpcam[0]:
-                #    imu_str = extract_imu_data(imumsg)
-                #    fout.write('%s %s\n' % (impath, imu_str))
+                if tpimu and topic == tpcam[0]:
+                    imu_str = extract_imu_data(imumsg)
+                    fout.write('%s %s\n' % (impath, imu_str))
                 dindex[topic] += 1
         logger.info("Finished!\nSaved %d images in total" % index)
     else:
