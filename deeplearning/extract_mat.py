@@ -34,7 +34,7 @@ def main(matfile, output):
         fname, _ = splitext(basename(matfile))
         output = join(dirname(matfile), fname+'.csv')
         fout = open(output, 'w')
-        header = 'pathimg,x1,y1,x2,y2\n'
+        header = 'filename,width,height,class,xmin,ymin,xmax,ymax\n'
         fout.write(header)
 
     dmat = sio.loadmat(matfile)
@@ -47,17 +47,22 @@ def main(matfile, output):
 
         smob = smob[0]
         if smob.size:
+            #smob = map(int, smob)
             _x1, _y1, _x2, _y2 = smob
-            for x1, y1, x2, y2 in zip(_x1, _y1, _x2, _y2):
-                fout.write('%s,%d,%d,%d,%d\n' % 
-                           (img_name, int(x1), int(y1), int(x2), int(y2)))
+            for xmin, ymin, xmax, ymax in zip(_x1, _y1, _x2, _y2):
+                width = xmax - xmin
+                height = ymax - ymin
+                fout.write('%s,%d,%d,obstacle,%d,%d,%d,%d\n' % 
+                           (img_name, width, height, xmin, ymin, xmax, ymax))
 
         laob = laob[0]
         if laob.size:
             _x1, _y1, _x2, _y2 = laob
-            for x1, y1, x2, y2 in zip(_x1, _y1, _x2, _y2):
-                fout.write('%s,%d,%d,%d,%d\n' % 
-                           (img_name, int(x1), int(y1), int(x2), int(y2)))
+            for xmin, ymin, xmax, ymax in zip(_x1, _y1, _x2, _y2):
+                width = xmax - xmin
+                height = ymax - ymin
+                fout.write('%s,%d,%d,obstacle,%d,%d,%d,%d\n' % 
+                           (img_name, width, height, xmin, ymin, xmax, ymax))
         
         index += 1
 
