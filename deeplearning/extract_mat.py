@@ -11,13 +11,56 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 import argparse
 
 import scipy.io as sio
-from os.path import realpath
+from os.path import realpath, dirname, splitext, basename, join
+
+def check_namefile(index):
+    """ Images contain the name starting as 00001.jpg """
+    name = '{0:05}'.format(index)
+    return name+'.jpg'
+    
 
 def main(matfile, output):
-    matfile = realpath(matfile)
-    output = realpath(output)
+    """
+    matfile from MODD dataset
+        'smallobjects', '__header__', 'masks', '__globals__',
+        'largeobjects', 'horizonts', '__version__'
+    """
 
+    matfile = realpath(matfile)
+    pathimg = join(dirname(matfile), 'images')
+    if output:
+        output = realpath(output)
+    else:
+        fname, _ = splitext(basename(matfile))
+        output = join(dirname(matfile), fname+'.csv')
+        fout = open(output, 'w')
+        header = 'pathimg,x1,y1,x2,y2\n'
+        fout.write(header)
+
+    dmat = sio.loadmat(matfile)
+    small = dmat['smallobjects']
+    large = dmat['largeobjects']
     
+    index = 1
+    for smob, laob in zip(small, large):
+        img_name = join(pathimg, check_namefile(index))
+
+        smob = smob[0]
+        if smob.size:
+            _x1, _y1, _x2, _y2 = smob
+            for x1, y1, x2, y2 in zip(_x1, _y1, _x2, _y2):
+                fout.write('%s,%d,%d,%d,%d\n' % 
+                           (img_name, int(x1), int(y1), int(x2), int(y2)))
+
+        laob = laob[0]
+        if laob.size:
+            _x1, _y1, _x2, _y2 = laob
+            for x1, y1, x2, y2 in zip(_x1, _y1, _x2, _y2):
+                fout.write('%s,%d,%d,%d,%d\n' % 
+                           (img_name, int(x1), int(y1), int(x2), int(y2)))
+        
+        index += 1
+
 
 
 if __name__ == "__main__":
