@@ -22,7 +22,7 @@ def check_namefile(index):
     name = '{0:05}'.format(index)
     return name+'.jpg'
     
-
+HOME='/home/roger/Downloads/05/'
 def main(jsonfile, output):
     """
     json file from a dataset annotated with VoTT
@@ -32,22 +32,32 @@ def main(jsonfile, output):
     """
     with open(jsonfile) as f:
         data = json.load(f)
+    
+    #print len(data['frames']['0'])
 
     dic = {}
     for id in data['frames']:
         #'filename', 'width', 'height', 'class', 'xmin', 'ymin', 'xmax', 'ymax'
-        filename = join(HOME, id+'.jpg')
-        x1 = data['frames'][id]['x1']
-        x2 = data['frames'][id]['x2']
-        y1 = data['frames'][id]['y1']
-        y2 = data['frames'][id]['y2']
-        w = data['frames'][id]['width']
-        h = data['frames'][id]['height']
-        dic[int(id)] = {}
-        print id
+        idframe = int(id)+1
+        filename = join(HOME, str(idframe)+'.jpg')
+        for dobj in data['frames'][id]:
+            print dobj
+        break
+    """
+            x1 = data['frames'][id]['x1']
+            x2 = data['frames'][id]['x2']
+            _y1 = data['frames'][id]['y1']
+            y2 = data['frames'][id]['y2']
+            w = data['frames'][id]['width']
+            h = data['frames'][id]['height']
+
+        y1 = h - _y1 - (y2 - _y1)
+
+        #dic[int(id)] = {'x1': ,'x2': ,'y1': ,'y2': ,'width': ,'height': }
+        #print id
     #print data['frames']['1']
     #frames = data['frames']    
-
+    """
     """
 
     matfile = realpath(matfile)
