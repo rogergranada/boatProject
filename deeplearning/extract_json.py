@@ -30,34 +30,46 @@ def main(jsonfile, output):
          'frames', 'tag_colors', 'suggestiontype'}
         
     """
+    if not output:
+        fname, ext = splitext(basename(jsonfile))
+        output = join(dirname(jsonfile), fname+'_annot.csv')
     with open(jsonfile) as f:
         data = json.load(f)
     
     #print len(data['frames']['0'])
 
     dic = {}
-    for id in data['frames']:
+    for id in sorted(data['frames']):
         #'filename', 'width', 'height', 'class', 'xmin', 'ymin', 'xmax', 'ymax'
         idframe = int(id)+1
         filename = join(HOME, str(idframe)+'.jpg')
         for dobj in data['frames'][id]:
-            print dobj
-        break
-    """
-            x1 = data['frames'][id]['x1']
-            x2 = data['frames'][id]['x2']
-            _y1 = data['frames'][id]['y1']
-            y2 = data['frames'][id]['y2']
-            w = data['frames'][id]['width']
-            h = data['frames'][id]['height']
+            x1 = int(dobj['x1'])
+            x2 = int(dobj['x2'])
+            _y1 = int(dobj['y1'])
+            y2 = int(dobj['y2'])
+            w = int(dobj['width'])
+            h = int(dobj['height'])
+            _id = int(dobj['id'])
 
-        y1 = h - _y1 - (y2 - _y1)
+            width = x2 - x1
+            height = y2 - _y1
+            y1 = h - _y1 - height
+            dic[(int(id), _id)] = {'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'width': width, 'height': height, 'filename': filename}
 
-        #dic[int(id)] = {'x1': ,'x2': ,'y1': ,'y2': ,'width': ,'height': }
-        #print id
-    #print data['frames']['1']
-    #frames = data['frames']    
-    """
+    with open(output, 'w') as fout:
+        header = 'filename,width,height,class,xmin,ymin,xmax,ymax\n'
+        fout.write(header)
+        for id in sorted(dic):
+            fout.write('%s,%d,%d,obstacle,%d,%d,%d,%d\n' % (dic[id]['filename'],
+                                                          dic[id]['width'],
+                                                          dic[id]['height'],
+                                                          dic[id]['x1'],
+                                                          dic[id]['y1'],
+                                                          dic[id]['x2'],
+                                                          dic[id]['y2']
+                                                         ))
+
     """
 
     matfile = realpath(matfile)
