@@ -66,7 +66,9 @@ class ImageManager(object):
                 y = int(arr[5])
                 width = int(arr[1])
                 height = int(arr[2])
-                self.imgdata.append((path, x, y, width, height))
+                x1 = int(arr[6])
+                y1 = int(arr[7])
+                self.imgdata.append((path, x, y, width, height, x1, y1))
                 self._check_size(path)
         return self.imgdata
 
@@ -76,11 +78,11 @@ class ImageManager(object):
         Return the path, true label and predicted label of the next image 
         in the list of images.
         """
-        path, x, y, width, height = self.imgdata[self.index]
+        path, x, y, width, height, x1, y1 = self.imgdata[self.index]
         if self.index < len(self.imgdata)-1:
             self.index += 1
         fname = basename(path)
-        return fname, path, x, y, width, height
+        return fname, path, x, y, width, height, x1, y1
 #End of class ImageManager
 
 
@@ -130,11 +132,11 @@ class DemoWindow(Tk):
         self.frame.configure(text='Frame: '+text)
 
 
-    def drawBox(self, pathimg, x, y, width, height):
+    def drawBox(self, pathimg, x, y, width, height, x1, y1):
         self.im = Image.open(pathimg)
         draw = ImageDraw.Draw(self.im)
-        x1 = x + width
-        y1 = y + height
+        #x1 = x + width
+        #y1 = y + height
         #draw.rectangle(((x, y), (x1, y1)), outline=128)
         # rectangle has only 1px lines
         # use lines with width=3 to better drawing
@@ -152,10 +154,11 @@ class DemoWindow(Tk):
         """
         Update the window and its elements every second
         """
-        name, path, x, y, width, height = self.imgs.nextImage()
-        self.drawBox(path, x, y, width, height)
+        name, path, x, y, width, height, x1, y1 = self.imgs.nextImage()
+        self.drawBox(path, x, y, width, height, x1, y1)
         self.updateImage(path)
         self.updateLabelFrame(name)
+        time.sleep(2)
         self.after(1, self.update_window)
 #End of class DemoWindow
 
