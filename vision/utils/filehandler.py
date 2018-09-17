@@ -7,9 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+import os
 import ast
 import numpy as np
-from os.path import realpath, dirname, splitext
+from os.path import realpath, dirname, splitext, exists
 from os.path import basename, isfile, isdir, join
 
 import progressbar
@@ -45,6 +46,29 @@ def add2dic(dic, key, value):
     else:
         dic[key] = [value]
     return dic
+
+
+def mkdir_from_file(path):
+    """ Create a folder with the same name of the file (without extension)"""
+    path = realpath(path)
+    dirfile = dirname(path)
+    fname, ext = filename(path)
+    dirout = join(dirfile, fname)
+    if exists(dirout):
+        logger.warning('Folder %s already exists!' % dirout)
+    else:
+        os.makedirs(dirout)
+    return dirout
+
+
+def sort_by_name(list_images):
+    """ sort images by name """
+    ids = []
+    for name in list_images:
+        fname, ext = splitext(basename(name))
+        ids.append(int(fname))
+    list_names = [str(name)+'.jpg' for name in sorted(ids)]
+    return list_names
 
 
 class PathfileHandler(object):
