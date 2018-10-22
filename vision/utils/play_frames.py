@@ -3,7 +3,7 @@
 
 import os
 from os.path import join, splitext, basename, dirname
-from os.path import realpath, abspath, exists
+from os.path import realpath, abspath, exists, isdir
 
 import argparse
 from Tkinter import Tk, Label, Listbox, END, N, S, W
@@ -144,16 +144,20 @@ def create_file_paths(inputfolder, fileoutput):
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument('inputfile', metavar='file_input', 
-                        help='file containing the paths of images.')
-    #parser.add_argument('inputfolder', metavar='folder_input', 
-    #                    help='folder containing images.')
-    #parser.add_argument('outputfile', metavar='file_output', 
-    #                    help='file to save paths of images.')
+                        help='file or folder containing images.')
     args = parser.parse_args()
-
-    #create_file_paths(args.inputfolder, args.outputfile)
-
-    window = DemoWindow(args.inputfile)
+    
+    input = args.inputfile
+    if isdir(input):
+        input = input+'/'
+        dirin = dirname(realpath(input))
+        outputfile = join(dirin, 'paths.txt')
+        create_file_paths(input, outputfile)
+    elif isfile(input):
+        outputfile = input    
+    
+    window = DemoWindow(outputfile)
     window.mainloop()
     
