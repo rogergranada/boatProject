@@ -102,7 +102,7 @@ def rename_files(rootfolder):
             for name in files:
                 old_path = join(root, name)
                 new_path = join(root, str(index)+'.jpg')
-                os.rename(old_path, new_path)
+                #os.rename(old_path, new_path)
                 fout.write('%s\n' % new_path)
                 index += 1
         fout.close()
