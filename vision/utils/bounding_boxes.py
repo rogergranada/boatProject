@@ -145,60 +145,71 @@ def predictions_to_json(gt_file, classes_folder, output=None):
         json.dump(dic, outfile)
                     
 
-def prec_rec(gt_file, pred_file):
+def accurary_scores(dresults):
     """
     Calculate the precision and recall of predicted bounding boxes
 
     Parameters:
     -----------
-    gt_file : string
-        json file containing ground truth
-    pred_file : string 
-        json file containing predicted bounding boxes
+    dresults : dict
+        Dictionary containing true positives, false positives and false negatives
+        The dictionary has the form:
+        {'true_pos': int, 'false_pos': int, 'false_neg': int}
     """
-    pass
+    tp = dresults['true_pos']
+    fp = dresults['false_pos']
+    fn = dresults['false_neg']
+    try:
+        precision = float(tp)/(tp + fp)
+    except ZeroDivisionError:
+        precision = 0.0
+    try:
+        recall = float(tp)/(tp + fn)
+    except ZeroDivisionError:
+        recall = 0.0
+    try:
+        f_score = 2*(precision * recall) / (precision + recall)
+    except ZeroDivisionError:
+        f_score = 0.0
+    return (precision, recall, f_score)
 
-####################3
-def iou(pred_box, gt_box):
-    """Calculate IoU of single predicted and ground truth box
+####################
+def calculate_iou(g_bbox, p_bbox):
+    """
+    Calculate Intersection over Union (IoU) of a pair of bounding boxes
 
-    Args:
-        pred_box (list of floats): location of predicted object as
-            [xmin, ymin, xmax, ymax]
-        gt_box (list of floats): location of ground truth object as
-            [xmin, ymin, xmax, ymax]
+    Parameters:
+    -----------
+        g_bbox list
+            ground truth bounding box in the form [xmin, ymin, xmax, ymax]
+        p_bbox: list
+            predicted bounding box in the form [xmin, ymin, xmax, ymax]
 
     Returns:
-        float: value of the IoU for the two boxes.
-
-    Raises:
-        AssertionError: if the box is obviously malformed
+    --------
+        float: value of the IoU
     """
-    print '>>', pred_box, gt_box
-    x1_t, y1_t, x2_t, y2_t = gt_box
-    x1_p, y1_p, x2_p, y2_p = pred_box
+    g_xmin, g_ymin, g_xmax, g_ymax = g_bbox
+    p_xmin, p_ymin, p_xmax, p_ymax = p_bbox
 
-    if (x1_p > x2_p) or (y1_p > y2_p):
-        raise AssertionError(
-            "Prediction box is malformed? pred box: {}".format(pred_box))
-    if (x1_t > x2_t) or (y1_t > y2_t):
-        raise AssertionError(
-            "Ground Truth box is malformed? true box: {}".format(gt_box))
+    if (g_xmin > g_xmax) or (g_ymin > g_bbox) or \
+       (p_xmin > p_xmax) or (p_ymin > p_bbox):
+        logger.error('Bounding box contain errors, e.g., xmin>max')
+        sys.exit(0)
 
-    if (x2_t < x1_p or x2_p < x1_t or y2_t < y1_p or y2_p < y1_t):
+    if (g_xmax < p_xmin or p_xmax < g_xmin or \
+        g_ymax < p_ymin or p_ymax < g_ymin):
         return 0.0
 
-    far_x = np.min([x2_t, x2_p])
-    near_x = np.max([x1_t, x1_p])
-    far_y = np.min([y2_t, y2_p])
-    near_y = np.max([y1_t, y1_p])
+    far_x = np.min([g_xmax, p_xmax])
+    near_x = np.max([g_xmin, p_xmin])
+    far_y = np.min([g_ymax, p_ymax])
+    near_y = np.max([g_ymin, p_ymin])
 
     inter_area = (far_x - near_x + 1) * (far_y - near_y + 1)
-    print '#',inter_area
-    true_box_area = (x2_t - x1_t + 1) * (y2_t - y1_t + 1)
-    pred_box_area = (x2_p - x1_p + 1) * (y2_p - y1_p + 1)
-    iou = float(inter_area) / (true_box_area + pred_box_area - inter_area)
-    print 'iou', iou
+    true_box_area = (g_xmax - g_xmin + 1) * (g_ymax - g_ymin + 1)
+    p_bbox_area = (p_xmax - p_xmin + 1) * (p_ymax - p_ymin + 1)
+    iou = float(inter_area) / (true_box_area + p_bbox_area - inter_area)
     return iou
 
 
@@ -234,7 +245,7 @@ def get_single_image_results(gt_boxes, pred_boxes, iou_thr):
     ious = []
     for ipb, pred_box in enumerate(pred_boxes):
         for igb, gt_box in enumerate(gt_boxes):
-            iou = calc_iou_individual(pred_box, gt_box)
+            iou = calculate_iou(pred_box, gt_box)
             if iou > iou_thr:
                 gt_idx_thr.append(igb)
                 pred_idx_thr.append(ipb)
@@ -281,14 +292,24 @@ def select_by_class(dic):
 
 def image_results(g_img, p_img):
     all_classes = set(g_img.keys()+p_img.keys())
+    results = { 'false_pos': 0, 'true_pos': 0, 'false_neg': 0 }
     for label in all_classes:
-        v = get_single_image_results(g_img[label], p_img[label], 0.2)
-        print g_img[label]
-        print p_img[label]
-        print label, v
+        if not g_img.has_key(label): g_img[label] = []
+        if not p_img.has_key(label): p_img[label] = []
+        dres = get_single_image_results(g_img[label], p_img[label], 0.5)
+        results['false_pos'] += dres['false_pos']
+        results['true_pos'] += dres['true_pos']
+        results['false_neg'] += dres['false_neg']
+    return results
 
     
-def generate_results(file_ground, file_pred):
+def generate_results(file_ground, file_pred, output=None):
+    if not output:
+        fname, _ = splitext(basename(file_pred))
+        output = join(dirname(file_pred), 'scores_'+fname+'.txt')
+    logger.info('Saving file %s' % output)
+    fout = open(output, 'w')
+
     with open(file_ground) as infile:
         dgt = json.load(infile)
     dg = select_by_class(dgt)
@@ -297,24 +318,14 @@ def generate_results(file_ground, file_pred):
     dp = select_by_class(dpred)
 
     # g_: ground p_: predicted
-    for img in sorted(dp):
+    for id, img in enumerate(sorted(dp)):
         g_img = dg[img]
         p_img = dp[img]
-        image_results(g_img, p_img)
-        print img
-        break
+        dresults = image_results(g_img, p_img)
+        scores = accurary_scores(dresults)
+        fout.write('%s %f %f %f\n' % (img, scores[0], scores[1], scores[2]))
+    fout.close()
         
-    """
-    
-        {u'boxes': [[32, 213, 49, 232], [221, 41, 238, 64], [234, 249, 250, 306], [189, 280, 206, 318], [116, 74, 196, 221]], u'classes': [u'clock', u'person', u'person', u'person', u'stop sign'], u'scores': [0.625, 0.113, 0.11, 0.059, 0.057]}
-        {u'boxes': [[57, 215, 66, 226], [35, 214, 44, 224]], u'classes': [u'clock', u'clock']}
-
-        
-        break
-    print p_img
-    print g_img
-    """
-
 
 def select_above_threshold(file_pred, output=None, threshold=0.5):
     """ 
@@ -347,11 +358,33 @@ def select_above_threshold(file_pred, output=None, threshold=0.5):
     logger.info('Saving file %s' % fjson)
     with open(fjson, 'w') as outfile:
         json.dump(dic, outfile)
-            
+
+
+def check_difference(f_faster, f_leanet, output=None):
+    if not output:
+        output = join(dirname(f_faster), 'difference.csv')
+    fout = open(output, 'w')
+    dic = {}
+    with open(f_faster) as fin:
+        for line in fin:
+            img, p, r, f = line.strip().split()
+            dic[img] = {'p': float(p), 'r': float(r), 'f': float(f)}
+        
+    with open(f_leanet) as fin:
+        for line in fin:
+            img, p, r, f = line.strip().split()
+            if dic.has_key(img):
+                dif_p = float(p) - dic[img]['p']
+                dif_r = float(r) - dic[img]['r']
+                dif_f = float(f) - dic[img]['f']
+                fout.write('%s,%f,%f,%f\n' % (img, dif_p, dif_r, dif_f))
+    fout.close()
+
 
 def main(fground, folderpred):
+    check_difference(fground, folderpred)
     #generate_results(fground, folderpred)
-    generate_results(fground, folderpred)
+    #select_above_threshold(folderpred)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
