@@ -10,25 +10,60 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-def verify_errors(filein):
+def verify_errors(filein, im_true, im_error, fileout):
     color = ('b','g','r')
+
+    fout = open(fileout, 'w')
+
+    # histogram correct
+    img = cv2.imread(im_true)
+    hist_true = []
+    for channel, col in enumerate(color):
+        hist = cv2.calcHist([img],[channel],None,[256],[0,256])
+        hist = hist.reshape(1, 256)
+        hist_true.extend(list(hist[0]))
+    #print len(hist_true)
+
+    # histogram error
+    img = cv2.imread(im_error)
+    hist_error = []
+    for channel, col in enumerate(color):
+        hist = cv2.calcHist([img],[channel],None,[256],[0,256])
+        hist = hist.reshape(1, 256)
+        hist_error.extend(list(hist[0]))
+    #print len(hist_error)
+
+    count = 0
     with open(filein) as fin:
         for line in fin:
             line = line.strip()
             img = cv2.imread(line)
 
+            hist_line = []
             for channel, col in enumerate(color):
                 hist = cv2.calcHist([img],[channel],None,[256],[0,256])
-                plt.plot(hist, color = col)
+                hist = hist.reshape(1, 256)
+                hist_line.extend(list(hist[0]))
+            
+            #calculate distance
+            hist_line = np.array(hist_line)
+            hist_true = np.array(hist_true)
+            hist_error = np.array(hist_error)
+            dtrue = np.linalg.norm(hist_line - hist_true)
+            dfalse = np.linalg.norm(hist_line - hist_error)
 
-                plt.xlim([0,256])
-                plt.title('Histogram for color scale picture')
-    plt.show()
+            if dtrue < dfalse:
+                pass #print 'True:', line
+            else:
+                count += 1
+                #print 'False:', line 
+                fout.write(line+'\n')
+    print '%d files containing errors' % count
+    fout.close()
+            
 
-    while True:
-        k = cv2.waitKey(0) & 0xFF     
-        if k == 27: break             # ESC key to exit 
-    cv2.destroyAllWindows()
+
+
 
 
 def create_file_paths(inputfolder, fileoutput):
@@ -51,9 +86,17 @@ if __name__== "__main__":
 
     parser.add_argument('inputfile', metavar='file_input', 
                         help='file or folder containing images.')
+    parser.add_argument('image_true', metavar='true_image', 
+                        help='Valid image.')
+    parser.add_argument('image_error', metavar='error_image', 
+                        help='Image containing errors.')
+    parser.add_argument('outputfile', metavar='fileout', 
+                        help='Path to file to save images with error.')
     args = parser.parse_args()
     
     input = args.inputfile
+    im_true = args.image_true
+    im_error = args.image_error
     if isdir(input):
         input = input+'/'
         dirin = dirname(realpath(input))
@@ -62,5 +105,5 @@ if __name__== "__main__":
     elif isfile(input):
         outputfile = input    
     
-    verify_errors(input)
+    verify_errors(input, im_true, im_error, args.outputfile)
     
