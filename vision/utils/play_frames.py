@@ -3,11 +3,12 @@
 
 import os
 from os.path import join, splitext, basename, dirname
-from os.path import realpath, abspath, exists, isdir
+from os.path import realpath, abspath, exists, isdir, isfile
 
 import argparse
 from Tkinter import Tk, Label, Listbox, END, N, S, W
 from PIL import Image, ImageTk
+import time
 
 class ImageManager(object):
     """
@@ -68,6 +69,7 @@ class ImageManager(object):
         data = self.imgdata[self.index]
         if self.index < len(self.imgdata)-1:
             self.index += 1
+        time.sleep(1)
         return data
 #End of class ImageManager
 
