@@ -55,7 +55,8 @@ def get_topics(bag):
             cam_topic.append(topic)
         else:
             logger.warning('Topic "%s" of type %s is not listed for extraction.' % (topic, topic_type))
-    return imu_topic, cam_topic
+    #return imu_topic, cam_topic
+    return None, cam_topic
 
 
 def extract_imu_data(msg):
@@ -103,8 +104,8 @@ def main(bagname):
                 index = dindex[topic]
                 impath = store_image(msg, index, dcam[topic])
                 if tpimu and topic == tpcam[0]:
-                    imu_str = extract_imu_data(imumsg)
-                    fout.write('%s %s\n' % (impath, imu_str))
+                    #imu_str = extract_imu_data(imumsg)
+                    fout.write('%s %s\n' % (impath, '#')) #imu_str))
                 dindex[topic] += 1
         logger.info("Finished!\nSaved %d images in total" % index)
     else:
