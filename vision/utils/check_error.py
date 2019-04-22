@@ -2,13 +2,18 @@
 #-*- coding: utf-8 -*-
 
 import os
+import argparse
+import cv2
+import numpy as np
 from os.path import join, splitext, basename, dirname
 from os.path import realpath, abspath, exists, isdir, isfile
 
-import argparse
-import cv2
-import matplotlib.pyplot as plt
-import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+from progressbar import ProgressBar as pb
+
 
 def verify_errors(filein, im_true, im_error, fileout):
     color = ('b','g','r')
@@ -16,6 +21,7 @@ def verify_errors(filein, im_true, im_error, fileout):
     fout = open(fileout, 'w')
 
     # histogram correct
+    logger.info('Loading true image: %s' % im_true)
     img = cv2.imread(im_true)
     hist_true = []
     for channel, col in enumerate(color):
@@ -25,6 +31,7 @@ def verify_errors(filein, im_true, im_error, fileout):
     #print len(hist_true)
 
     # histogram error
+    logger.info('Loading error image: %s' % im_error)
     img = cv2.imread(im_error)
     hist_error = []
     for channel, col in enumerate(color):
@@ -32,6 +39,10 @@ def verify_errors(filein, im_true, im_error, fileout):
         hist = hist.reshape(1, 256)
         hist_error.extend(list(hist[0]))
     #print len(hist_error)
+
+    logger.info('Checking number of images...')
+    for nb_imgs, _ in enumerate(open(filein), start=1): pass
+    logger.info('Input folder containing %d images' % nb_imgs)
 
     count = 0
     with open(filein) as fin:
