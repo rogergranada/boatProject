@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 
 """
+Before running this script in a remove machine, plese set variables as:
+
+# ROS
+# ----
+export ROS_ROOT=/opt/ros/kinetic
+export PATH=$ROS_ROOT/bin:$PATH
+export ROS_MASTER_URI=http://192.168.1.101:11311
+export ROS_IP=192.168.1.103
+#export ROS_HOSTNAME=hp
 """
 import argparse
 import sys
