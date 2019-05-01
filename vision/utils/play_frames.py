@@ -69,7 +69,7 @@ class ImageManager(object):
         data = self.imgdata[self.index]
         if self.index < len(self.imgdata)-1:
             self.index += 1
-        time.sleep(1)
+        #time.sleep(1)
         return data
 #End of class ImageManager
 
