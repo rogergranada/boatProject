@@ -43,35 +43,66 @@ def store_image(msg, index, dirout):
 
 
 def get_topics(bag):
-    """ Return a list of camera topics and IMU topic """
-    imu_topic = None
-    cam_topic = []
+    """ Return a list of camera topics and IMU topic. 
+        
+        Code: represents the elements that contain topic
+        1000 : Image (camera)
+         100 : IMU data
+          10 : GPS data
+           1 : Control data
+        Thus, a code=1110 contains data of the camera, imu and gps
+    """
+    tpc_imu, tpc_gps, tpc_ctr = None, None, None
+    tpc_cam = []
+    code = 0
     dtopics = bag.get_type_and_topic_info()[1]
     for topic in dtopics:
         topic_type = dtopics[topic][0]
         if topic_type == 'sensor_msgs/Imu':
-            imu_topic = topic
+            tpc_imu = topic
+            code_imu = 100
+        elif topic_type == 'sensor_msgs/NavSatFix':
+            tpc_gps = topic
+            code_gps = 10
+        elif topic_type == 'mavros_msgs/RCOut':
+            tpc_ctr = topic
+            code_ctr = 1
         elif topic_type == 'sensor_msgs/Image':
-            cam_topic.append(topic)
+            tpc_cam.append(topic)
+            code_cam = 1000
         else:
             logger.warning('Topic "%s" of type %s is not listed for extraction.' % (topic, topic_type))
-    #return imu_topic, cam_topic
-    return None, cam_topic
+    code = code_cam + code_imu + code_gps + code_ctr
+    return code, tpc_imu, tpc_gps, tpc_ctr, tpc_cam
 
 
 def extract_imu_data(msg):
     """ Return a string with the content of IMU data """
-    ori = "%f %f %f" % (msg.orientation.x, 
+    ori = "%f; %f; %f" % (msg.orientation.x, 
                         msg.orientation.y, 
                         msg.orientation.z)
-    avl = "%f %f %f" % (msg.angular_velocity.x, 
+    avl = "%f; %f; %f" % (msg.angular_velocity.x, 
                         msg.angular_velocity.y, 
                         msg.angular_velocity.z)
-    lac = "%f %f %f" % (msg.linear_acceleration.x, 
+    lac = "%f; %f; %f" % (msg.linear_acceleration.x, 
                         msg.linear_acceleration.y, 
                         msg.linear_acceleration.z)
-    imu_str = "%s %s %s" % (ori, avl, lac)
+    imu_str = "%s; %s; %s" % (ori, avl, lac)
     return imu_str
+
+
+def extract_gps_data(msg):
+    """ Return a string with the content of IMU data """
+    gps_str = "%f; %f; %f" % (msg.latitude, 
+                        msg.longitude, 
+                        msg.altitude)
+    return gps_str
+
+def extract_ctr_data(msg):
+    """ """
+    roll, x1, throttle, x2, x3, x4, x5, x6 = msg.channels
+    tpc_ctr = '%d; %d' % (roll, throttle)
+    return tpc_ctr
 
 
 def main(bagname):
@@ -83,31 +114,69 @@ def main(bagname):
         bag = rosbag.Bag(bagname)
         logger.info(bag.get_type_and_topic_info())
 
-        # check whether exists IMU data
-        tpimu, tpcam = get_topics(bag)
-        if tpimu:
-            fout = open(join(dirout, 'imu_data.txt'), 'w')
+        # check whether exists other data
+        code, tpc_imu, tpc_gps, tpc_ctr, tpc_cam = get_topics(bag) 
 
-        dcam, dindex = {}, {}
-        for cam_t in tpcam:
+        if tpc_imu or tpc_gps or tpc_ctr:
+            fout = open(join(dirout, 'topics.csv'), 'w')
+            content = ''
+            if tpc_cam:
+                content += 'path; '
+            if tpc_imu:
+                content += 'imu_ori_x; imu_ori_y; imu_ori_z; '
+                content += 'imu_avl_x; imu_avl_y; imu_avl_z; '
+                content += 'imu_lac_x; imu_lac_y; imu_lac_z; '
+            if tpc_gps:
+                content += 'gps_lat; gps_long; gps_alt; '
+            if tpc_ctr:
+                content += 'roll; throttle; '
+            fout.write(content+'\n')
+
+        # create folders for images
+        dcam = {}
+        for cam_t in tpc_cam:
             fname = cam_t.split('/')[-1]+'.tmp'
             dirtp = fh.mkdir_from_file(join(dirout, fname))
             dcam[cam_t] = dirtp
-            dindex[cam_t] = 0
     
-        bagcontents = bag.read_messages()
-        imumsg = ''
-        for topic, msg, timestamp in bagcontents:
-            if topic == tpimu:
-                imumsg = msg
-            elif topic in tpcam:
-                index = dindex[topic]
-                impath = store_image(msg, index, dcam[topic])
-                if tpimu and topic == tpcam[0]:
-                    #imu_str = extract_imu_data(imumsg)
-                    fout.write('%s %s\n' % (impath, '#')) #imu_str))
-                dindex[topic] += 1
-        logger.info("Finished!\nSaved %d images in total" % index)
+        # extract bag messages
+        img_index = 0
+        bag_messages = bag.read_messages()
+        imudata, gpsdata, ctrdata = None, None, None
+        for topic, msg, timestamp in bag_messages:
+            if topic == tpc_imu:
+                imudata = extract_imu_data(msg)
+            elif topic == tpc_gps:
+                gpsdata = extract_gps_data(msg)
+            elif topic == tpc_ctr:
+                ctrdata = extract_ctr_data(msg)
+            elif topic in tpc_cam:
+                if topic != tpc_cam[0]: 
+                    # store left and right images
+                    store_image(msg, img_index, dcam[topic])
+                else:
+                    # store depth and sensor data
+                    pathimg = '%s.jpg' % img_index
+                    store_image(msg, img_index, dcam[topic])
+                    if code == 1111 and (imudata and gpsdata and ctrdata):
+                        content = pathimg+'; '+imudata+'; '+gpsdata+'; '+ctrdata+';\n'
+                    elif code == 1110 and (imudata and gpsdata):
+                        content = pathimg+'; '+imudata+'; '+gpsdata+';\n'
+                    elif code == 1101 and (imudata and ctrdata):
+                        content = pathimg+'; '+imudata+'; '+ctrdata+';\n'
+                    elif code == 1100 and imudata:
+                        content = pathimg+'; '+imudata+';\n'
+                    elif code == 1011 and (gpsdata and ctrdata):
+                        content = pathimg+'; '+gpsdata+'; '+ctrdata+';\n'
+                    elif code == 1010 and gpsdata:
+                        content = pathimg+'; '+gpsdata+';\n'
+                    elif code == 1001 and ctrdata:
+                        content = pathimg+'; '+ctrdata+';\n'
+                    elif code == 1000:
+                        content = pathimg+';\n'
+                    fout.write(content)
+                    img_index += 1
+        logger.info("Finished!\nSaved %d images in total" % img_index)
     else:
         logger.error('File %s is not a .bag file')
         sys.exit(1)
