@@ -6,7 +6,7 @@ from os.path import join, splitext, basename, dirname
 from os.path import realpath, abspath, exists, isdir, isfile
 
 import argparse
-from Tkinter import Tk, Label, Listbox, END, N, S, W
+from tkinter import Tk, Label, Listbox, END, N, S, W
 from PIL import Image, ImageTk
 import time
 
@@ -141,7 +141,7 @@ def create_file_paths(inputfolder, fileoutput):
             names.append(int(name))
     for name in sorted(names):
         fout.write('%s%d.jpg\n' % (inputfolder, name))
-    print 'Saved paths in file: %s' % fileoutput
+    print('Saved paths in file: %s' % fileoutput)
 
 
 if __name__== "__main__":
