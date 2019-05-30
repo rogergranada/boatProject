@@ -6,6 +6,9 @@ from os.path import join, splitext, basename, dirname
 from os.path import realpath, abspath, exists, isdir, isfile
 
 import argparse
+# Python 2
+#from Tkinter import Tk, Label, Listbox, END, N, S, W
+# Python 3
 from tkinter import Tk, Label, Listbox, END, N, S, W
 from PIL import Image, ImageTk
 import time
