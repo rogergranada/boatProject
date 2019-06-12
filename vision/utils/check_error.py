@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-from progressbar import ProgressBar as pb
+from progressbar import ProgressBar
 
 
 def verify_errors(filein, im_true, im_error, fileout):
@@ -45,9 +45,13 @@ def verify_errors(filein, im_true, im_error, fileout):
     logger.info('Input folder containing %d images' % nb_imgs)
 
     count = 0
+    pb = ProgressBar(nb_imgs)
     with open(filein) as fin:
         for line in fin:
+            pb.update()
             line = line.strip()
+            if not isfile(line):
+                continue
             img = cv2.imread(line)
 
             hist_line = []
