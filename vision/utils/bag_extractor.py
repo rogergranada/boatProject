@@ -53,6 +53,7 @@ def get_topics(bag):
         Thus, a code=1110 contains data of the camera, imu and gps
     """
     tpc_imu, tpc_gps, tpc_ctr = None, None, None
+    code_imu, code_gps, code_ctr = 0, 0, 0
     tpc_cam = []
     code = 0
     dtopics = bag.get_type_and_topic_info()[1]
@@ -117,8 +118,8 @@ def main(bagname):
         # check whether exists other data
         code, tpc_imu, tpc_gps, tpc_ctr, tpc_cam = get_topics(bag) 
 
+        fout = open(join(dirout, 'topics.csv'), 'w')
         if tpc_imu or tpc_gps or tpc_ctr:
-            fout = open(join(dirout, 'topics.csv'), 'w')
             content = ''
             if tpc_cam:
                 content += 'path; '
