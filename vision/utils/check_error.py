@@ -18,6 +18,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 from progressbar import ProgressBar
 
 def identify_green(img):
+    """ Identify images containing errors in green and purple """
     #img = cv2.imread(fimage)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -30,7 +31,9 @@ def identify_green(img):
         return True
     return False
 
+
 def identify_red(img):
+    """ Identify images containing errors in red and green """
     #img = cv2.imread(fimage)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -43,75 +46,6 @@ def identify_red(img):
         return True
     return False
 
-def error_channel(fimage):
-    img = cv2.imread(fimage)
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    #green_min = np.array([30, 100, 100], dtype="uint8")
-    #green_max = np.array([90, 255, 255], dtype="uint8")
-    green_min = np.array([5, 50, 200], dtype="uint8")
-    green_max = np.array([30, 255, 255], dtype="uint8")
-    mask = cv2.inRange(hsv, green_min, green_max)
-    #print mask.shape
-    mask = mask[:200]
-    #print mask.shape
-    nb_nz = np.count_nonzero(mask)
-    perc = float(nb_nz)/(mask.shape[0]*mask.shape[1])
-    print perc
-    print nb_nz
-    plt.imshow(mask, cmap='gray')
-    plt.show()
-
-def __error_channel(fimage):
-    #f = plt.figure(1)
-    color = ('b','g','r')
-    img = cv2.imread(fimage)
-    hist_channel = []
-    for channel, col in enumerate(color):
-        hist = cv2.calcHist([img],[channel],None,[256],[0,256])
-        #plt.xlim([0,256])
-        #plt.plot(hist, color=col)
-        hist = hist.reshape(1, 256)
-        hist_channel.append(list(hist[0]))
-
-    #print len(hist_channel)
-
-    #calculate distance
-    #hist_b = np.array(hist_channel[0])[250:]
-    #hist_g = np.array(hist_channel[1])[250:]
-    #hist_r = np.array(hist_channel[2])[250:]
-    
-    vb = hist_channel[0][-1]
-    vg = hist_channel[1][-1]
-    vr = hist_channel[2][-1]
-
-    #dist_rg = np.linalg.norm(hist_r - hist_g)
-    #dist_rb = np.linalg.norm(hist_r - hist_b)
-    #dist_gb = np.linalg.norm(hist_g - hist_b)
-
-    #dist_rg = cosine_similarity(hist_r, hist_g)
-    #dist_rb = cosine_similarity(hist_r, hist_b)
-    #dist_gb = cosine_similarity(hist_g, hist_b)
-    
-    #plt.show()
-    total = vr+vg+vb
-
-    pr = vr/float(total)
-    pg = vg/float(total)
-    pb = vb/float(total)
-
-    print pr+pg
-    print pr
-    print pg
-    print pb
-    #print 'B', vb/float(total)
-
-    if pr+pg > 0.9 or pg < 0.1:
-        return True
-    #if dist_rg < 0.9: # or dist_rb < 0.8 or dist_gb < 0.8:
-    #    return True
-    #raw_input()
-    return False
 
 def verify_errors(filein, im_true, im_error, fileout):
     fout = open(fileout, 'w')
@@ -140,7 +74,7 @@ def verify_errors(filein, im_true, im_error, fileout):
 
 
 
-def green_error(filein, im_true, im_error, fileout):
+def check_histograms(filein, im_true, im_error, fileout):
     color = ('b','g','r')
 
     fout = open(fileout, 'w')
@@ -202,10 +136,6 @@ def green_error(filein, im_true, im_error, fileout):
     fout.close()
             
 
-
-
-
-
 def create_file_paths(inputfolder, fileoutput):
     fout = open(fileoutput, 'w')
 
@@ -234,8 +164,8 @@ if __name__== "__main__":
                         help='Path to file to save images with error.')
     args = parser.parse_args()
     
-    #error_channel(args.inputfile)
-    
+    error_channel(args.inputfile)
+    """
     input = args.inputfile
     im_true = args.image_true
     im_error = args.image_error
@@ -248,4 +178,4 @@ if __name__== "__main__":
         outputfile = input    
     
     verify_errors(input, im_true, im_error, args.outputfile)
-    
+    """
