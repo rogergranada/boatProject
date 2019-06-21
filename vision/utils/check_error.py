@@ -47,7 +47,7 @@ def identify_red(img):
     return False
 
 
-def verify_errors(filein, im_true, im_error, fileout):
+def verify_errors(filein, fileout):
     fout = open(fileout, 'w')
 
     logger.info('Checking number of images...')
@@ -156,16 +156,12 @@ if __name__== "__main__":
 
     parser.add_argument('inputfile', metavar='file_input', 
                         help='file or folder containing images.')
-    parser.add_argument('image_true', metavar='true_image', 
-                        help='Valid image.')
-    parser.add_argument('image_error', metavar='error_image', 
-                        help='Image containing errors.')
     parser.add_argument('outputfile', metavar='fileout', 
                         help='Path to file to save images with error.')
     args = parser.parse_args()
     
-    error_channel(args.inputfile)
-    """
+    #error_channel(args.inputfile)
+    
     input = args.inputfile
     im_true = args.image_true
     im_error = args.image_error
@@ -177,5 +173,5 @@ if __name__== "__main__":
     elif isfile(input):
         outputfile = input    
     
-    verify_errors(input, im_true, im_error, args.outputfile)
-    """
+    verify_errors(input, args.outputfile)
+    
