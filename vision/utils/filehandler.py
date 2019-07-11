@@ -71,6 +71,23 @@ def sort_by_name(list_images):
     return list_names
 
 
+def create_paths(inputfolder, fileoutput, path=None):
+    fout = open(fileoutput, 'w')
+
+    files = os.listdir(inputfolder)
+    names = []
+    for img in files:
+        name, ext = splitext(img)
+        if ext == '.jpg':
+            names.append(int(name))
+    for name in sorted(names):
+        if path:
+            fout.write('%s/%d.jpg\n' % (path, name))
+        else:
+            fout.write('%s/%d.jpg\n' % (inputfolder, name))
+    logger.info('Saved paths in file: %s' % fileoutput)
+
+
 class PathfileHandler(object):
     """Class to deal with files containing paths and labels/features"""
 
@@ -107,7 +124,7 @@ class PathfileHandler(object):
             for line in fin:
                 arr = line.strip().split()
                 if len(arr) == 1:
-                    self.path = arr
+                    self.path = arr[0]
                     yield self.path
                 elif len(arr) > 1:
                     self.path = arr[0]

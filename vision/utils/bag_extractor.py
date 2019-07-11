@@ -141,7 +141,7 @@ def main(bagname):
             dcam[cam_t] = dirtp
     
         # extract bag messages
-        img_index = 0
+        id_right, id_left, id_depth = 0, 0, 0
         bag_messages = bag.read_messages()
         imudata, gpsdata, ctrdata = None, None, None
         for topic, msg, timestamp in bag_messages:
@@ -152,13 +152,18 @@ def main(bagname):
             elif topic == tpc_ctr:
                 ctrdata = extract_ctr_data(msg)
             elif topic in tpc_cam:
-                if topic != tpc_cam[0]: 
-                    # store left and right images
-                    store_image(msg, img_index, dcam[topic])
+                if topic == tpc_cam[1]: 
+                    # store right images
+                    store_image(msg, id_right, dcam[topic])
+                    id_right += 1
+                elif topic == tpc_cam[2]:
+                    # store left images
+                    store_image(msg, id_left, dcam[topic])
+                    id_left += 1
                 else:
                     # store depth and sensor data
-                    pathimg = '%s.jpg' % img_index
-                    store_image(msg, img_index, dcam[topic])
+                    pathimg = '%s.jpg' % id_depth
+                    store_image(msg, id_depth, dcam[topic])
                     if code == 1111 and (imudata and gpsdata and ctrdata):
                         content = pathimg+'; '+imudata+'; '+gpsdata+'; '+ctrdata+';\n'
                     elif code == 1110 and (imudata and gpsdata):
@@ -176,8 +181,8 @@ def main(bagname):
                     elif code == 1000:
                         content = pathimg+';\n'
                     fout.write(content)
-                    img_index += 1
-        logger.info("Finished!\nSaved %d images in total" % img_index)
+                    id_depth += 1
+        logger.info("Finished!\nSaved %d images in total" % id_depth)
     else:
         logger.error('File %s is not a .bag file')
         sys.exit(1)

@@ -11,7 +11,7 @@ def playBox(img, bounding_boxes):
     im = np.array(Image.open(img), dtype=np.uint8)
     fig, ax = plt.subplots(1)
     ax.imshow(im)
-
+    print bounding_boxes
     for x, y, w, h in bounding_boxes:
         rect = patches.Rectangle((x, y), w, h, linewidth=1, edgecolor='r', facecolor='none')
         ax.add_patch(rect)
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     w = args.width
     h = args.height
     
-    playBox(img, [x, y, w, h])
+    playBox(img, [[x, y, w, h]])
 
 
 

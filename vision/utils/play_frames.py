@@ -143,7 +143,8 @@ def create_file_paths(inputfolder, fileoutput):
         if ext == '.jpg':
             names.append(int(name))
     for name in sorted(names):
-        fout.write('%s%d.jpg\n' % (inputfolder, name))
+        fname = str(name)+'.jpg'
+        fout.write('%s\n' % join(inputfolder, fname))
     print('Saved paths in file: %s' % fileoutput)
 
 
