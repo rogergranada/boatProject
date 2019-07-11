@@ -1,25 +1,20 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-
-import os
-import argparse
-import cv2
-import numpy as np
-from os.path import join, splitext, basename, dirname
-from os.path import realpath, abspath, exists, isdir, isfile
-from scipy import spatial
-from matplotlib import pyplot as plt
-import math
-
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+import argparse
+import cv2
+import numpy as np
+from os.path import join, dirname
+from os.path import realpath, isdir, isfile
+
 from progressbar import ProgressBar
+from utils import count_lines, create_paths
 
 def identify_green(img):
     """ Identify images containing errors in green and purple """
-    #img = cv2.imread(fimage)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     green_min = np.array([30, 100, 100], dtype="uint8")
@@ -51,7 +46,7 @@ def verify_errors(filein, fileout):
     fout = open(fileout, 'w')
 
     logger.info('Checking number of images...')
-    for nb_imgs, _ in enumerate(open(filein), start=1): pass
+    nb_imgs = count_lines(filein)
     logger.info('Input folder containing %d images' % nb_imgs)
 
     count = 0
@@ -67,89 +62,10 @@ def verify_errors(filein, fileout):
             if identify_green(img) or identify_red(img):
                 fout.write('%s\n' % line)
                 count += 1
-
-    print '%d files containing errors' % count
+    logger.info('{} files containing errors'.format(count))
+    logger.info('Log of error files saved at: {}'.format(fileout))
     fout.close()
             
-
-
-
-def check_histograms(filein, im_true, im_error, fileout):
-    color = ('b','g','r')
-
-    fout = open(fileout, 'w')
-
-    # histogram correct
-    logger.info('Loading true image: %s' % im_true)
-    img = cv2.imread(im_true)
-    hist_true = []
-    for channel, col in enumerate(color):
-        hist = cv2.calcHist([img],[channel],None,[256],[0,256])
-        hist = hist.reshape(1, 256)
-        hist_true.extend(list(hist[0]))
-    #print len(hist_true)
-
-    # histogram error
-    logger.info('Loading error image: %s' % im_error)
-    img = cv2.imread(im_error)
-    hist_error = []
-    for channel, col in enumerate(color):
-        hist = cv2.calcHist([img],[channel],None,[256],[0,256])
-        hist = hist.reshape(1, 256)
-        hist_error.extend(list(hist[0]))
-    #print len(hist_error)
-
-    logger.info('Checking number of images...')
-    for nb_imgs, _ in enumerate(open(filein), start=1): pass
-    logger.info('Input folder containing %d images' % nb_imgs)
-
-    count = 0
-    pb = ProgressBar(nb_imgs)
-    with open(filein) as fin:
-        for line in fin:
-            pb.update()
-            line = line.strip()
-            if not isfile(line):
-                continue
-            img = cv2.imread(line)
-
-            hist_line = []
-            for channel, col in enumerate(color):
-                hist = cv2.calcHist([img],[channel],None,[256],[0,256])
-                hist = hist.reshape(1, 256)
-                hist_line.extend(list(hist[0]))
-            
-            #calculate distance
-            hist_line = np.array(hist_line)
-            hist_true = np.array(hist_true)
-            hist_error = np.array(hist_error)
-            dtrue = np.linalg.norm(hist_line - hist_true)
-            dfalse = np.linalg.norm(hist_line - hist_error)
-
-            if dtrue < dfalse:
-                pass #print 'True:', line
-            else:
-                count += 1
-                #print 'False:', line 
-                fout.write(line+'\n')
-    print '%d files containing errors' % count
-    fout.close()
-            
-
-def create_file_paths(inputfolder, fileoutput):
-    fout = open(fileoutput, 'w')
-
-    path = realpath(inputfolder)
-    files = os.listdir(inputfolder)
-    names = []
-    for img in files:
-        name, ext = splitext(img)
-        if ext == '.jpg':
-            names.append(int(name))
-    for name in sorted(names):
-        fout.write('%s\n' % join(inputfolder, str(name)+'.jpg'))
-    print 'Saved paths in file: %s' % fileoutput
-
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser()
@@ -160,16 +76,12 @@ if __name__== "__main__":
                         help='Path to file to save images with error.')
     args = parser.parse_args()
     
-    #error_channel(args.inputfile)
-    
     input = args.inputfile
-    im_true = args.image_true
-    im_error = args.image_error
     if isdir(input):
         input = input+'/'
         dirin = dirname(realpath(input))
         outputfile = join(dirin, 'paths.txt')
-        create_file_paths(input, outputfile)
+        create_paths(input, outputfile)
     elif isfile(input):
         outputfile = input    
     
