@@ -25,11 +25,11 @@ def main(input, output, copy_files):
             fname = basename(line)
             newfile = join(output, fname)
             if copy_files:
-                print 'Copying:', line, '->', newfile
+                logger.info('Copying: {} -> {}'.format(line, newfile))
                 shutil.copyfile(line, newfile)                
             else:
-                print 'Moving:', line, '->', newfile 
-                #shutil.move(line, newfile)
+                logger.info('Moving: {} -> {}'.format(line, newfile))
+                shutil.move(line, newfile)
 
 
 if __name__ == "__main__":
