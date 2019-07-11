@@ -14,35 +14,21 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
+from utils import create_paths
 
-def create_file_paths(inputfolder, fileoutput):
-    fout = open(fileoutput, 'w')
-
-    path = realpath(inputfolder)
-    files = os.listdir(inputfolder)
-    names = []
-    for img in files:
-        name, ext = splitext(img)
-        if ext == '.jpg':
-            names.append(int(name))
-    for name in sorted(names):
-        fout.write('%s/%d.jpg\n' % (inputfolder, name))
-    print('Saved paths in file: %s' % fileoutput)
-
-
-def main(inputfolder, outputfile):
-    inputfolder = realpath(inputfolder)
-    if not outputfile:
-        outputfile = join(dirname(inputfolder), 'paths.txt')
-    create_file_paths(inputfolder, outputfile)
-    
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputfolder', metavar='folder_input', 
                         help='Folder containing images.')
     parser.add_argument('-o', '--output', default=None, 
-                        help='File output to save all paths.' )
+                        help='File output to save all paths.')
+    parser.add_argument('-p', '--path', default=None, 
+                        help='Change the path of the current images to this new path.')
     args = parser.parse_args()
     
-    main(args.inputfolder, args.output)
+    inputfolder = realpath(args.inputfolder)
+    outputfile = args.output
+    if not outputfile:
+        outputfile = join(dirname(inputfolder), 'paths.txt')
+    create_paths(inputfolder, outputfile, path=args.path)
