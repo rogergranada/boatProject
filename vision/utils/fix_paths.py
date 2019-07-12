@@ -3,70 +3,59 @@
 """
 Fix paths for files after removing all images that contain errors or are
 not part of the dataset (boat is not on the water). This script loads the
-`paths.txt` and `topics.csv` file and rename all files in the path file for
-folders `
+`paths.txt` and `topics.csv` file and renames all paths in the path file. 
+It generates as output a new file for `topics.csv` containing only topics
+for images that belong to the dataset, and a file `rename.txt` containing
+the previous path and the new path for all files of the dataset.
+
+Rename.txt has the format:
+old_path new_path\n
 
 """
-import os
-import shutil
-import argparse
-from os.path import join, splitext, basename, dirname
-from os.path import realpath, abspath, exists, isdir, isfile
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+import argparse
+from os.path import join, dirname
 
-from progressbar import ProgressBar
-from utils import count_lines
+import filehandler as fh
 
-def main(inputfile, start_frame=-1, end_frame=-1, move=False, output=None):
+def main(inputfile, topics, dirout=None):
     """
-    Remove or move files from paths described in a pathfile. 
-    This function will remove/delete all files in a pathfile 
-    in case `start_frame` and `end_frame` equal to -1. In case
-    of moving file, an output folder may be passed as argument.     
+    Exclude files from topics that do not exist in the final list of images.
+    Rename files fixing their names (restart the counter from 0).       
     """
-    #print inputfile, start_frame, end_frame, move, output
-    if move and not output:
-        output = join(dirname(inputfile), 'removed')
-        if not isdir(output):
-            legger.info('Creating folder: {}'.format(output))
-            os.makedir(output)
+    if not dirout:
+        dirout = dirname(inputfile)
 
-    dicfiles = {}
-    pb = ProgressBar(count_lines(inputfile))
-    with open(inputfile) as fin:
-        for line in fin:
-            path = line.strip().split()[0]
-            fname, _ = splitext(basename(path))
-            fname = int(fname)
-            dicfiles[fname] = path
-            pb.update()
+    pfi = fh.PathfileHandler(inputfile)
+    dnames = {}
+    for _ in pfi:
+        dnames[fh.filename(pfi.path, string=True)] = ''
 
-
-    for id in sorted(dicfiles):
-        if (start_frame <= id and id <= end_frame) \
-           or (start_frame == -1 and end_frame == -1):
-            if move:
-                shutil.move(dicfiles[id], join(output, str(id)+'.jpg'))
-            else:
-                logger.info('Removing file {}'.format(dicfiles[id]))
-                os.remove(dicfiles[id])
-
+    count = 0
+    features = ''
+    with open(join(dirout, 'rename.txt'), 'w') as ftxt, \
+         open(join(dirout, 'topics.csv'), 'w') as ftpc:
+        pft = fh.PathfileHandler(topics, sep=';', display=False)
+        for path, feats in pft:
+            if dnames.has_key(path):
+                new_path = '%d.jpg' % count 
+                ftxt.write('%s %s\n' % (path, new_path))
+                if feats:
+                    features = ';'.join(feats)
+                ftpc.write('%s;%s\n' % (new_path, features))
+                count += 1
+    
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('inputfile', metavar='file_input', 
-                        help='file or folder containing images.')
-    parser.add_argument('-s', '--start', default=-1, type=int,
-                        help='Id of the start frame to delete (included).')
-    parser.add_argument('-e', '--end', default=-1, type=int,
-                        help='Id of the end frame to delete (included).')
-    parser.add_argument('-m', '--move', action='store_true', 
-                        help='Move files instead of deleting them')
+    parser.add_argument('filepaths', metavar='file_kept', 
+                        help='file containing path for images that are kept.')
+    parser.add_argument('topics', metavar='file_topics', 
+                        help='file containing all data from bag.')
     parser.add_argument('-o', '--output', default=None, 
-                        help='Output folder to move deleted files')
+                        help='Output folder to save new files')
     args = parser.parse_args()
     
-    main(args.inputfile, args.start, args.end, args.move, args.output)
+    main(args.filepaths, args.topics, args.output)

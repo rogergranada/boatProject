@@ -10,9 +10,6 @@ topics are:
     /camera/depth_image
     /gps/fix 
     /imu/data 
-    /tf 
-    /time_reference 
-    /vel
 
 """
 

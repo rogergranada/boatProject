@@ -33,8 +33,10 @@ def is_folder(inputfolder):
     return inputfolder
 
 
-def filename(path, extension=True):
+def filename(path, extension=True, string=False):
     fname, ext = splitext(basename(path))
+    if string:
+        return '%s%s' % (fname, ext)
     if extension:
         return fname, ext
     return fname
@@ -91,7 +93,7 @@ def create_paths(inputfolder, fileoutput, path=None):
 class PathfileHandler(object):
     """Class to deal with files containing paths and labels/features"""
 
-    def __init__(self, inputfile, display=True, load=False):
+    def __init__(self, inputfile, display=True, load=False, sep=' '):
         """Initializes the class
         
         Parameters
@@ -107,12 +109,12 @@ class PathfileHandler(object):
         self.inputfile = realpath(inputfile)
         self.inputdir = dirname(inputfile)
         self.nb_lines = self.count_lines(inputfile)
+        self.sep = sep
         self.path = None
-        self.label = None
         self.feats = None
 
         if load:
-            self.vpaths, self.vlabels, self.vfeats = load_file(inputfile)
+            self.vpaths, self.vfeats = load_file(inputfile)
 
 
     def __iter__(self):
@@ -122,21 +124,14 @@ class PathfileHandler(object):
         pb = progressbar.ProgressBar(self.nb_lines)
         with open(self.inputfile) as fin:
             for line in fin:
-                arr = line.strip().split()
-                if len(arr) == 1:
+                arr = line.strip().split(self.sep)
+                if arr:
                     self.path = arr[0]
-                    yield self.path
-                elif len(arr) > 1:
-                    self.path = arr[0]
-                    self.label = arr[1]
-                    if len(arr) > 2:
-                        if len(arr[2:]) == 1:
-                            self.feats = ast.literal_eval(arr[2])
-                        else:
-                            self.feats = map(float, arr[2:])
-                        yield self.path, self.label, self.feats
-                    else:
-                        yield self.path, self.label
+                    if len(arr) == 2 and arr[1]:
+                        self.feats = arr[1]
+                    elif len(arr) > 1 and arr[1]:
+                        self.feats = arr[1:]
+                    yield self.path, self.feats
                 if self.display:
                     pb.update()
 
@@ -146,22 +141,15 @@ class PathfileHandler(object):
         """ Load the content of pathfile into `path`, `label` and `feats`
         """
         logger.debug('Loading file: %s' % inputfile)
-        vpaths, vlabels, vfeats = [], [], []
+        vpaths, vfeats = [], []
         with open(inputfile) as fin:
             for line in fin:
                 arr = line.strip().split()
-                if len(arr) == 2:
+                if arr:
                     vpaths.append(arr[0])
-                    vlabels.append(int(arr[1]))
-                elif len(arr) == 3:
-                    vpaths.append(arr[0])
-                    vlabels.append(int(arr[1]))
-                    vfeats.append(int(arr[2]))
-                elif len(arr) > 3:
-                    vpaths.append(arr[0])
-                    vlabels.append(int(arr[1]))
-                    vfeats.append(map(float, arr[2:]))
-        return vpaths, vlabels, vfeats
+                elif len(arr) > 1:
+                    vfeats.append(arr[2:])
+        return vpaths, vfeats
 
 
     @staticmethod
@@ -199,15 +187,6 @@ class PathfileHandler(object):
                 y = arr[1]
                 return path, y
         return path
-
-
-    def get_label(self, nb_line):
-        """Returns the path of the line at number `nb_line`"""
-        line = linecache.getline(self.inputfile, nb_line)
-        label = None
-        if line:
-            label = line.split()[1]
-        return label
 
 
     def features_line(self, nb_line, asstr=False):
