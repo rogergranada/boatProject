@@ -3,10 +3,10 @@
 """
 Fix paths for files after removing all images that contain errors or are
 not part of the dataset (boat is not on the water). This script loads the
-`paths.txt` and `topics.csv` file and renames all paths in the path file. 
-It generates as output a new file for `topics.csv` containing only topics
-for images that belong to the dataset, and a file `rename.txt` containing
-the previous path and the new path for all files of the dataset.
+`paths.txt` and `topics_original.csv` file and renames all paths in the 
+path file. It generates as output a new file for `topics.csv` containing 
+only topics for images that belong to the dataset, and a file `rename.txt` 
+containing the previous path and the new path for all files of the dataset.
 
 Rename.txt has the format:
 old_path new_path\n
@@ -22,7 +22,7 @@ import filehandler as fh
 
 def main(inputfile, topics, dirout=None):
     """
-    Exclude files from topics that do not exist in the final list of images.
+    Exclude rows from topic file that do not exist in the final list of images.
     Rename files fixing their names (restart the counter from 0).       
     """
     if not dirout:
@@ -38,12 +38,16 @@ def main(inputfile, topics, dirout=None):
     with open(join(dirout, 'rename.txt'), 'w') as ftxt, \
          open(join(dirout, 'topics.csv'), 'w') as ftpc:
         pft = fh.PathfileHandler(topics, sep=';', display=False)
-        for path, feats in pft:
+        for arr in pft:
+            if isinstance(arr, str):
+                path = arr
+            else:
+                path = arr[0]
             if dnames.has_key(path):
                 new_path = '%d.jpg' % count 
                 ftxt.write('%s %s\n' % (path, new_path))
-                if feats:
-                    features = ';'.join(feats)
+                if len(arr) == 2 and arr[1]:
+                    features = ';'.join(arr[1])
                 ftpc.write('%s;%s\n' % (new_path, features))
                 count += 1
     
