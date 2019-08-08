@@ -115,7 +115,7 @@ def main(bagname):
         # check whether exists other data
         code, tpc_imu, tpc_gps, tpc_ctr, tpc_cam = get_topics(bag) 
 
-        fout = open(join(dirout, 'topics.csv'), 'w')
+        fout = open(join(dirout, 'topics_original.csv'), 'w')
         if tpc_imu or tpc_gps or tpc_ctr:
             content = ''
             if tpc_cam:
