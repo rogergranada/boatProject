@@ -129,9 +129,12 @@ class PathfileHandler(object):
                     self.path = arr[0]
                     if len(arr) == 2 and arr[1]:
                         self.feats = arr[1]
+                        yield self.path, self.feats
                     elif len(arr) > 1 and arr[1]:
                         self.feats = arr[1:]
-                    yield self.path, self.feats
+                        yield self.path, self.feats
+                    else:
+                        yield self.path
                 if self.display:
                     pb.update()
 
