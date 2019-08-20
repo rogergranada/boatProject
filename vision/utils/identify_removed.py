@@ -1,5 +1,9 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
+"""
+From a file containing paths for files that are in the current dataset,
+create a new file with paths of the excluded files.
+"""
 
 import os
 import shutil
