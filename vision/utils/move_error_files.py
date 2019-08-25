@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 import shutil
 
 
-def main(input, output, copy_files):
+def move_files(input, output, copy_files):
     with open(input) as fin:
         for line in fin:
             line = line.strip()
@@ -38,5 +38,5 @@ if __name__ == "__main__":
     parser.add_argument('movefolder', metavar='move_folder', help='Folder where images will be moved')
     parser.add_argument('-c', '--copy', action='store_true', default=False, help='Copy files instead of move them' )
     args = parser.parse_args()
-    main(args.filepaths, args.movefolder, args.copy)
+    move_files(args.filepaths, args.movefolder, args.copy)
     
