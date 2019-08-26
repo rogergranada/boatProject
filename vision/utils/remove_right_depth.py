@@ -29,7 +29,7 @@ def main(reference, target, move=False, output=None):
         fh.create_paths(reference, fout)
         reference = fout
     if isdir(target):
-        fout = join(dirname(target), 'paths_target.txt')
+        fout = join(dirname(target), '..', 'paths_target.txt')
         fh.create_paths(target, fout)
         target = fout
 
@@ -57,8 +57,8 @@ def main(reference, target, move=False, output=None):
 if __name__== "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('reffile', metavar='reference_input', 
-                        help='file or folder containing images.')
+    parser.add_argument('reffile', metavar='paths_kept', 
+                        help='file or folder containing images that will be kept.')
     parser.add_argument('targetfile', metavar='target_input', 
                         help='folder containing images that will be removed.')
     parser.add_argument('-m', '--move', action='store_true', 
