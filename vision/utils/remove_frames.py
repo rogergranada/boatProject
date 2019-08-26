@@ -41,11 +41,14 @@ def main(inputfile, start_frame=-1, end_frame=-1, move=False, output=None):
     for id in sorted(dicfiles):
         if (start_frame <= id and id <= end_frame) \
            or (start_frame == -1 and end_frame == -1):
-            if move:
-                shutil.move(dicfiles[id], join(output, str(id)+'.jpg'))
-            else:
-                logger.info('Removing file {}'.format(dicfiles[id]))
-                os.remove(dicfiles[id])
+            try:
+                if move:
+                    shutil.move(dicfiles[id], join(output, str(id)+'.jpg'))
+                else:
+                    logger.info('Removing file {}'.format(dicfiles[id]))
+                    os.remove(dicfiles[id])
+            except:
+                logger.warning('File {} does not exist!'.format(dicfiles[id]))
 
 
 if __name__== "__main__":
