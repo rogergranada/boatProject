@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 import os
-from os.path import realpath, splitext 
+from os.path import realpath, splitext, basename
 
 
 def create_paths(inputfolder, fileoutput, path=None):
@@ -17,7 +17,8 @@ def create_paths(inputfolder, fileoutput, path=None):
     files = os.listdir(inputfolder)
     names = []
     for img in files:
-        name, ext = splitext(img)
+        name, ext = splitext(basename(img))
+        print ext
         if ext == '.jpg':
             names.append(int(name))
     for name in sorted(names):
