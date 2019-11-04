@@ -18,7 +18,6 @@ def create_paths(inputfolder, fileoutput, path=None):
     names = []
     for img in files:
         name, ext = splitext(basename(img))
-        print ext
         if ext == '.jpg':
             names.append(int(name))
     for name in sorted(names):
