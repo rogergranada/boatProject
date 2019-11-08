@@ -7,29 +7,15 @@ From a file containing paths of files, move them to a new folder.
 import os
 import argparse
 import sys
-from os.path import exists, dirname, join, basename, isfile
+from os.path import exists, dirname, join, basename, 
 
 import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-import shutil
 
 
-def move_files(input, output, copy_files):
-    with open(input) as fin:
-        for line in fin:
-            line = line.strip()
-            if not isfile(line):
-                logger.warning('File {} does not exist!'.format(line))
-                continue
-            fname = basename(line)
-            newfile = join(output, fname)
-            if copy_files:
-                logger.info('Copying: {} -> {}'.format(line, newfile))
-                shutil.copyfile(line, newfile)                
-            else:
-                logger.info('Moving: {} -> {}'.format(line, newfile))
-                shutil.move(line, newfile)
+
+
 
 
 if __name__ == "__main__":
