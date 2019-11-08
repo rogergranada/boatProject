@@ -2,7 +2,11 @@
 
 This folder contains scripts to clean and fix the dataset recorded with ZED Camera. ZED Camera sometimes record images with errors like green-pink images (image 1), red-blue images (image 2) and lens problem (image 3) as the illustrated in the images below.
 
-![alt-text-1](../images/error1.jpg "Error 1") ![alt-text-2](../images/error2.jpg " Error 2") ![alt-text-3](../images/error3.jpg " Error 3")
+<p float="left">
+  <img src="../images/error1.jpg" width="30%" align="center" />
+  <img src="../images/error2.jpg" width="30%" align="center" />
+  <img src="../images/error3.jpg" width="30%" align="center" />
+</p>
 
 Thus, this folder contains scripts to remove such files and rename all files to keep them in order. When extracting files from a bag, we recommend to run scripts in the following order:
 
