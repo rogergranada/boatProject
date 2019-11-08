@@ -5,12 +5,12 @@ From a bag passed as argument, this script creates a folder with the same name
 of the bag and extract all images from camera and GPS and IMU data. The recorded 
 topics are:
 
-    /camera/left_image
-    /camera/right_image
-    /camera/depth_image
-    /gps/fix 
-    /imu/data 
-
+    /camera/left_image :: sensor_msgs/Image
+    /camera/right_image :: sensor_msgs/Image
+    /camera/depth_image :: sensor_msgs/Image
+    /gps/fix :: sensor_msgs/NavSatFix
+    /imu/data :: sensor_msgs/Imu
+    /mavros/rc/out :: mavros_msgs/RCOut
 """
 
 import os
@@ -76,31 +76,91 @@ def get_topics(bag):
 
 def extract_imu_data(msg):
     """ Return a string with the content of IMU data """
-    ori = "%f; %f; %f" % (msg.orientation.x, 
+    ori = "%f;%f;%f" % (msg.orientation.x, 
                         msg.orientation.y, 
                         msg.orientation.z)
-    avl = "%f; %f; %f" % (msg.angular_velocity.x, 
+    avl = "%f;%f;%f" % (msg.angular_velocity.x, 
                         msg.angular_velocity.y, 
                         msg.angular_velocity.z)
-    lac = "%f; %f; %f" % (msg.linear_acceleration.x, 
+    lac = "%f;%f;%f" % (msg.linear_acceleration.x, 
                         msg.linear_acceleration.y, 
                         msg.linear_acceleration.z)
-    imu_str = "%s; %s; %s" % (ori, avl, lac)
+    imu_str = "%s;%s;%s" % (ori, avl, lac)
     return imu_str
 
 
 def extract_gps_data(msg):
     """ Return a string with the content of IMU data """
-    gps_str = "%f; %f; %f" % (msg.latitude, 
+    gps_str = "%f;%f;%f" % (msg.latitude, 
                         msg.longitude, 
                         msg.altitude)
     return gps_str
 
+
 def extract_ctr_data(msg):
-    """ """
+    """ Return the content of the control"""
     roll, x1, throttle, x2, x3, x4, x5, x6 = msg.channels
-    tpc_ctr = '%d; %d' % (roll, throttle)
+    tpc_ctr = '%d;%d' % (roll, throttle)
     return tpc_ctr
+
+
+def print_topic_info(bag):
+    """ Print topic, messages and frequency """
+    dtopics = bag.get_type_and_topic_info()[1]
+    for tpc in dtopics:
+        vals = dtopics[tpc]
+        logger.info('Topic: {}'.format(tpc))
+        logger.info('- Count: {}'.format(vals[1]))
+        logger.info('- Frequency: {}'.format(vals[3])) 
+
+
+def get_content(code, frame, imudata, gpsdata, ctrdata):
+    if code == 1111 and (imudata and gpsdata and ctrdata):
+        content = '{};{};{};{};'.format(frame, imudata, gpsdata, ctrdata)
+    elif code == 1110 and (imudata and gpsdata):
+        content = '{};{};{};'.format(frame, imudata, gpsdata)
+    elif code == 1101 and (imudata and ctrdata):
+        content = '{};{};{};'.format(frame, imudata, ctrdata)
+    elif code == 1100 and imudata:
+        content = '{};{};'.format(frame, imudata)
+    elif code == 1011 and (gpsdata and ctrdata):
+        content = '{};{};{};'.format(frame, gpsdata, ctrdata)
+    elif code == 1010 and gpsdata:
+        content = '{};{};'.format(frame, gpsdata)
+    elif code == 1001 and ctrdata:
+        content = '{};{};'.format(frame, ctrdata)
+    elif code == 1000:
+        content = '{};'.format(frame)
+    else:
+        logger.error('Code {} invalid!'.format(code))
+    return content
+
+
+def calculate_start(bag, tpc_cam):
+    """ Calculate the difference between count frames """
+    start_l, start_r, start_d = 0, 0, 0
+    tpc_d, tpc_r, tpc_l = tpc_cam
+    dtopics = bag.get_type_and_topic_info()[1]
+    count_d = dtopics[tpc_d][1]
+    count_r = dtopics[tpc_r][1]
+    count_l = dtopics[tpc_l][1]
+    count_min = np.argmin([count_d, count_r, count_l])
+    if count_min == 0:
+        # min is the depth image
+        start_d = 0
+        start_l = count_l - count_d
+        start_r = count_r - count_d
+    elif count_min == 1:
+        # min is the right image
+        start_r = 0
+        start_d = count_d - count_r
+        start_l = count_l - count_r
+    elif count_min == 2:
+        # min is the left image
+        start_l = 0
+        start_d = count_d - count_l
+        start_r = count_r - count_l
+    return start_d, start_r, start_l
 
 
 def main(bagname):
@@ -110,7 +170,7 @@ def main(bagname):
         dirout = fh.mkdir_from_file(bagname)
         logger.info('Reading bag %s' % bagname)
         bag = rosbag.Bag(bagname)
-        logger.info(bag.get_type_and_topic_info())
+        print_topic_info(bag)
 
         # check whether exists other data
         code, tpc_imu, tpc_gps, tpc_ctr, tpc_cam = get_topics(bag) 
@@ -119,16 +179,17 @@ def main(bagname):
         if tpc_imu or tpc_gps or tpc_ctr:
             content = ''
             if tpc_cam:
-                content += 'path; '
+                content += 'path;'
             if tpc_imu:
-                content += 'imu_ori_x; imu_ori_y; imu_ori_z; '
-                content += 'imu_avl_x; imu_avl_y; imu_avl_z; '
-                content += 'imu_lac_x; imu_lac_y; imu_lac_z; '
+                content += 'imu_ori_x;imu_ori_y;imu_ori_z;'
+                content += 'imu_avl_x;imu_avl_y;imu_avl_z;'
+                content += 'imu_lac_x;imu_lac_y;imu_lac_z;'
             if tpc_gps:
-                content += 'gps_lat; gps_long; gps_alt; '
+                content += 'gps_lat;gps_long;gps_alt;'
             if tpc_ctr:
-                content += 'roll; throttle; '
-            fout.write(content+'\n')
+                content += 'roll;throttle;'
+            fout.write(content[:-1]+'\n')
+        content = ';'.join(['None']*len(content.split(';')))
 
         # create folders for images
         dcam = {}
@@ -136,7 +197,11 @@ def main(bagname):
             fname = cam_t.split('/')[-1]+'.tmp'
             dirtp = fh.mkdir_from_file(join(dirout, fname))
             dcam[cam_t] = dirtp
-    
+        
+        # calculate start point for unsynchronized images
+        # in order to fix the divergence between recorded frames
+        start_d, start_r, start_l = calculate_start(bag, tpc_cam)
+
         # extract bag messages
         id_right, id_left, id_depth = 0, 0, 0
         bag_messages = bag.read_messages()
@@ -151,39 +216,30 @@ def main(bagname):
             elif topic in tpc_cam:
                 if topic == tpc_cam[1]: 
                     # store right images
-                    store_image(msg, id_right, dcam[topic])
+                    if id_right >= start_r:
+                        idr = id_right - start_r
+                        store_image(msg, idr, dcam[topic])
                     id_right += 1
                 elif topic == tpc_cam[2]:
                     # store left images
-                    store_image(msg, id_left, dcam[topic])
+                    if id_left >= start_l:
+                        idl = id_left - start_l
+                        store_image(msg, idl, dcam[topic])
+                        pathimg = '%s.jpg' % id_left
+                        content = get_content(code, pathimg, imudata, gpsdata, ctrdata)
+                        fout.write('%s\n' % content[:-1])
                     id_left += 1
                 else:
                     # store depth and sensor data
-                    pathimg = '%s.jpg' % id_depth
-                    store_image(msg, id_depth, dcam[topic])
-                    if code == 1111 and (imudata and gpsdata and ctrdata):
-                        content = pathimg+'; '+imudata+'; '+gpsdata+'; '+ctrdata+';\n'
-                    elif code == 1110 and (imudata and gpsdata):
-                        content = pathimg+'; '+imudata+'; '+gpsdata+';\n'
-                    elif code == 1101 and (imudata and ctrdata):
-                        content = pathimg+'; '+imudata+'; '+ctrdata+';\n'
-                    elif code == 1100 and imudata:
-                        content = pathimg+'; '+imudata+';\n'
-                    elif code == 1011 and (gpsdata and ctrdata):
-                        content = pathimg+'; '+gpsdata+'; '+ctrdata+';\n'
-                    elif code == 1010 and gpsdata:
-                        content = pathimg+'; '+gpsdata+';\n'
-                    elif code == 1001 and ctrdata:
-                        content = pathimg+'; '+ctrdata+';\n'
-                    elif code == 1000:
-                        content = pathimg+';\n'
-                    fout.write(content)
+                    if id_depth >= start_d:
+                        idd = id_depth - start_d
+                        store_image(msg, idd, dcam[topic])
                     id_depth += 1
         logger.info("Finished!\nSaved %d images in total" % id_depth)
     else:
         logger.error('File %s is not a .bag file')
         sys.exit(1)
-
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
