@@ -69,7 +69,7 @@ Having performed all these commands, the dataset is clean and ready to be annota
 
 The user can also play the dataset using `play_frames.py` script. This script generates a screen as the image below, with the sequence of frames of the dataset of the input. 
 
-<img src="../images/play_screen.jpg" width="90%" align="center" />
+<img src="../images/play_screen.png" width="90%" align="center" />
 
 In order to play the sequence of frames of the dataset, run:
 
