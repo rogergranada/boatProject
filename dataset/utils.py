@@ -12,6 +12,7 @@ from os.path import realpath, splitext, basename
 
 
 def create_paths(inputfolder, fileoutput, path=None):
+    """ Create a file containing all images from input folder """
     fout = open(fileoutput, 'w')
 
     files = os.listdir(inputfolder)
@@ -29,6 +30,7 @@ def create_paths(inputfolder, fileoutput, path=None):
 
 
 def count_lines(inputfile):
+    """ Count the number of lines of the input file """
     with open(inputfile) as fin:
         for i, _ in enumerate(fin, start=1):
             pass
