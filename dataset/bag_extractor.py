@@ -115,19 +115,19 @@ def print_topic_info(bag):
 
 
 def get_content(code, frame, imudata, gpsdata, ctrdata):
-    if code == 1111 and (imudata and gpsdata and ctrdata):
+    if code == 1111: #and (imudata and gpsdata and ctrdata):
         content = '{};{};{};{};'.format(frame, imudata, gpsdata, ctrdata)
     elif code == 1110 and (imudata and gpsdata):
         content = '{};{};{};'.format(frame, imudata, gpsdata)
-    elif code == 1101 and (imudata and ctrdata):
+    elif code == 1101: #and (imudata and ctrdata):
         content = '{};{};{};'.format(frame, imudata, ctrdata)
-    elif code == 1100 and imudata:
+    elif code == 1100: #and imudata:
         content = '{};{};'.format(frame, imudata)
-    elif code == 1011 and (gpsdata and ctrdata):
+    elif code == 1011: #and (gpsdata and ctrdata):
         content = '{};{};{};'.format(frame, gpsdata, ctrdata)
-    elif code == 1010 and gpsdata:
+    elif code == 1010: #and gpsdata:
         content = '{};{};'.format(frame, gpsdata)
-    elif code == 1001 and ctrdata:
+    elif code == 1001: #and ctrdata:
         content = '{};{};'.format(frame, ctrdata)
     elif code == 1000:
         content = '{};'.format(frame)
@@ -205,7 +205,7 @@ def main(bagname):
         # extract bag messages
         id_right, id_left, id_depth = 0, 0, 0
         bag_messages = bag.read_messages()
-        imudata, gpsdata, ctrdata = None, None, None
+        imudata, gpsdata, ctrdata = -0.0, -0.0, -0.0
         for topic, msg, timestamp in bag_messages:
             if topic == tpc_imu:
                 imudata = extract_imu_data(msg)
@@ -225,9 +225,9 @@ def main(bagname):
                     if id_left >= start_l:
                         idl = id_left - start_l
                         store_image(msg, idl, dcam[topic])
-                        pathimg = '%s.jpg' % id_left
+                        pathimg = '%s.jpg' % idl
                         content = get_content(code, pathimg, imudata, gpsdata, ctrdata)
-                        fout.write('%s\n' % content[:-1])
+                        if content: fout.write('%s\n' % content[:-1])
                     id_left += 1
                 else:
                     # store depth and sensor data
@@ -235,7 +235,7 @@ def main(bagname):
                         idd = id_depth - start_d
                         store_image(msg, idd, dcam[topic])
                     id_depth += 1
-        logger.info("Finished!\nSaved %d images in total" % id_depth)
+        logger.info("Finished!\nSaved %d images in total" % idl)
     else:
         logger.error('File %s is not a .bag file')
         sys.exit(1)
