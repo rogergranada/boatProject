@@ -40,3 +40,4 @@ The following signals are available through an expansion port:
 
 - [Installing JetPack L4T](JetpackLT4.md)
 - [Post Installation](PostInstall.md)
+- [Cloning and Restoring Image](Cloning.md)
