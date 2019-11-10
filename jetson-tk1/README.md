@@ -39,3 +39,4 @@ The following signals are available through an expansion port:
 # Instructions
 
 - [Installing JetPack L4T](JetpackLT4.md)
+- [Post Installation](PostInstall.md)
