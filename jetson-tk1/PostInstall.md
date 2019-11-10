@@ -48,6 +48,7 @@ Here we add several packages that should be installed to work in Jetson. All pac
 $ wget --no-check-certificate --content-disposition https://raw.githubusercontent.com/lsa-pucrs/platypus_doc/master/docs/source/jetson/scripts/additionalPackages.sh
 $ chmod +x additionalPackages.sh
 $ ./additionalPackages.sh
+```
 
 The script installs the following packages:
 
