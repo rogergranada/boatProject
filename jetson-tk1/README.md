@@ -42,3 +42,4 @@ The following signals are available through an expansion port:
 - [Post Installation](PostInstall.md)
 - [Cloning and Restoring Image](Cloning.md)
 - [Install ROS Package](Ros.md)
+- [Install ZED Package](Zed.md)
