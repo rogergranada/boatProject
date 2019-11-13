@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>zedpub</name>
+  <version>0.0.0</version>
+  <description>The zedpub package</description>
+
+  <maintainer email="roger.granada@acad.pucrs.br">Roger Granada</maintainer>
+  <license>TODO</license>
+  <author email="roger.granada@acad.pucrs.br">Roger Granada</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>opencv</build_depend>
+  <!-- <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>sensor_msgs</depend> -->
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>
