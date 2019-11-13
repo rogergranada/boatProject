@@ -1,0 +1,7 @@
+<launch>
+  <node name="zedpub_node" pkg="zedpub" type="zedpub_node" output="screen">
+
+    <!-- ROS topic names -->
+    <param name="camera_topic"  value="camera" />
+  </node>
+</launch>

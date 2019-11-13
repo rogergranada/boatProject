@@ -2,7 +2,7 @@
 
 The [ZED](https://www.stereolabs.com/documentation/overview/getting-started/introduction.html) is a camera that reproduces the way human vision works. Using its two "eyes" and through triangulation, the ZED provides a three-dimensional understanding of the scene it observes, allowing your application to become space and motion aware. ZED perceives the world in three dimensions by using dual lenses. Using binocular vision and high-resolution sensors, the camera can tell how far objects are around you from 0.5 to 20m at 100FPS, indoors and outdoors. It captures high-definition 3D video with a wide field of view and outputs two synchronized left and right video streams in side-by-side format on USB 3.0. 
 
-!['ZED'](https://platypus-boats.readthedocs.io/en/latest/_images/zed.jpg)
+!['ZED'](https://raw.githubusercontent.com/lsa-pucrs/platypus_doc/master/docs/source/jetson/images/zed.jpg)
 
 The [ZED camera](http://www.jetsonhacks.com/2016/02/03/stereolabs-zed-camera/) is a stereoscopic imaging camera which contains two high definition imagers. One imager is mounted on the left and the other on the right side of the camera enclosure. The camera provides a video stream, each frame of which consists of a composite of an image from each camera, side by side. The images are time synchronized. The video stream is sent over USB 3.0 to a host. On the host, the frame in the stream is then converted to a depth map using the host GPU. The Stereolabs SDK on the host uses the geometry of the fixed distance between the imaging elements, and using the known field of view of the imagers calculates an accurate depth map. The ZED can sense depth between 1 and 20 meters.
 
