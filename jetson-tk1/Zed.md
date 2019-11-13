@@ -19,8 +19,7 @@ $ ./ZED_SDK_Linux_JTK1_v1.2.0.run
 Running these commands will start to install the SDK. After finishing the installation process, reboot the Jetson TK1 board to apply the modifications.
 
 
-Creating a package to access ZED with ROS
-------------------------------------------
+## Creating a package to access ZED with ROS
 
 We create a ROS node named ``zedpub`` to publish the name of the image being saved by ZED Camera as a ROS topics. The entire folder containing the ROS package can be found in the [Github page](https://github.com/rogergranada/lutra-usv-lsa/blob/master/jetson-tk1/zedpub.zip?raw=true). Download and compile the ``zedpub`` package with:
 
