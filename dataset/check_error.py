@@ -5,14 +5,14 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 import argparse
+import os
 import cv2
 import numpy as np
 from os.path import join, dirname
 from os.path import realpath, isdir, isfile
 
 from progressbar import ProgressBar
-from utils import count_lines, create_paths
-import move_error_files
+from utils import count_lines, create_paths, move_files
 
 def identify_green(img):
     """ Identify images containing errors in green and purple """
@@ -98,8 +98,8 @@ if __name__== "__main__":
 
     parser.add_argument('finput', metavar='input', 
                         help='Path to a file or folder containing images.')
-    parser.add_argument('foutput', metavar='output', 
-                        help='Path to a file or folder to save images with error.')
+    parser.add_argument('-o', '--output', default='./error',
+                        help='Path to a folder to save images with error.')
     parser.add_argument('-m', '--move', action='store_true', help='Move files in case of output is a folder.' )
     args = parser.parse_args()
     
@@ -111,18 +111,16 @@ if __name__== "__main__":
         create_paths(input, inputfile)
         input = inputfile
 
-    output = args.foutput
-    if isdir(output):
-        output = output+'/'
-        dirout = dirname(realpath(output))
-        outputfile = join(dirout, 'error.txt')
-        output = outputfile 
+    output = args.output
+    if not isdir(output):
+        output = join(dirname(input), output)
+        os.mkdir(output)
+    outputfile = join(dirname(input), 'error.txt')
     
-    verify_errors(input, output)
+    verify_errors(input, outputfile)
 
-    if isdir(args.foutput):
-        if args.move:
-            move_error_files.move_files(output, args.foutput, False)
-        else:
-            move_error_files.move_files(output, args.foutput, True)
-    
+    if args.move:
+        move_files(outputfile, output, copy_files=False)
+    else:
+        move_files(outputfile, output, copy_files=True)
+
