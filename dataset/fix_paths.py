@@ -38,6 +38,7 @@ def main(inputfile, topics, dirout=None):
     with open(join(dirout, 'rename.txt'), 'w') as ftxt, \
          open(join(dirout, 'topics.csv'), 'w') as ftpc:
         pft = fh.PathfileHandler(topics, sep=';', display=False)
+        ftpc.write('%s\n' % pft.header())
         for arr in pft:
             if isinstance(arr, str):
                 path = arr
