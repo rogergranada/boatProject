@@ -65,7 +65,6 @@ SET(SPECIAL_OS_LIBS "pthread" "X11")
 ## Generate messages in the 'msg' folder
 add_message_files(
    DIRECTORY msg
-   FILES Img.msg
 )
 
 ## Generate services in the 'srv' folder
