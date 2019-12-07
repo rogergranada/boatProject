@@ -68,25 +68,25 @@ int main(int argc, char** argv) {
             // get right image
             slMat2cvMat(zed->retrieveImage(SIDE::RIGHT)).copyTo(imright);
             nm_right = dright + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-            cv::imwrite(nm_right, imright);
+            //cv::imwrite(nm_right, imright);
 
             // get left image
             slMat2cvMat(zed->retrieveImage(SIDE::LEFT)).copyTo(imleft);
             nm_left = dleft + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-            cv::imwrite(nm_left, imleft);
+            //cv::imwrite(nm_left, imleft);
 
             // get depth image
             sl::zed::Mat depth = zed->retrieveMeasure(MEASURE::DEPTH);  // get the pointer
             slMat2cvMat(zed->normalizeMeasure(MEASURE::DEPTH)).copyTo(imdepth);
             nm_depth = ddepth + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-            cv::imwrite(nm_depth, imdepth);
+            //cv::imwrite(nm_depth, imdepth);
 
             // publish the name of the image
             std_msgs::String pathimg;
             std::stringstream ss;
             ss << to_string(cnt) + string(".png");
-            msg.data = ss.str();
-            camera_pub.publish(msg);
+            pathimg.data = ss.str();
+            camera_pub.publish(pathimg);
 
             cnt++;
 
