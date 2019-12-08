@@ -4,6 +4,7 @@
 #include <zed/Camera.hpp>
 #include <opencv2/opencv.hpp>
 #include <std_msgs/String.h>
+#include <zedpub/MessageImg.h>
 
 using namespace sl::zed;
 using namespace std;
@@ -23,9 +24,13 @@ int main(int argc, char** argv) {
     // init ROS
     ros::init(argc, argv, "zedpub");
 
+    // get host name to add to the topic
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, HOST_NAME_MAX);
+
     // node handle to publish
     ros::NodeHandle nh;
-    ros::Publisher camera_pub = nh.advertise<std_msgs::String>("camera", 1000);
+    ros::Publisher camera_pub = nh.advertise<zedpub::MessageImg>(hostname+"/camera", 1000);
     ros::Rate loop_rate(10);
     
     // start ZED camera configuration
@@ -82,10 +87,14 @@ int main(int argc, char** argv) {
             //cv::imwrite(nm_depth, imdepth);
 
             // publish the name of the image
-            std_msgs::String pathimg;
+            zedpub::MessageImg msg;
             std::stringstream ss;
             ss << to_string(cnt) + string(".png");
-            pathimg.data = ss.str();
+        
+            ros::Time time = ros::Time::now();
+            msg.header.stamp = time
+            msg.header.frame_id = cnt
+            msg.imgname = ss.str();
             camera_pub.publish(pathimg);
 
             cnt++;
