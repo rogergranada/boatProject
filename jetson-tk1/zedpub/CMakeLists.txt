@@ -5,7 +5,7 @@ SET(VERSION_REQ_OCV "2.4")
 SET(VERSION_REQ_CUDA "6.5")
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+#add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -30,7 +30,7 @@ find_package(CUDA ${VERSION_REQ_CUDA} REQUIRED)
 SET(SPECIAL_OS_LIBS "pthread" "X11")
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures

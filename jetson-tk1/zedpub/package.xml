@@ -11,7 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>opencv</build_depend>
-  <depend package="zedpub" />
   <!-- <depend>cv_bridge</depend>
   <depend>image_transport</depend>
   <depend>sensor_msgs</depend> -->
