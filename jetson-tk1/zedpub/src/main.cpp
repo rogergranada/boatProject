@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
         ros::NodeHandle nh;
         ros::Publisher camera_pub = nh.advertise<zedpub::Img>(string(hostname)+"/camera", 1000);
         ros::Rate loop_rate(10);
-    /*
+    
         // start ZED camera configuration
         Camera* zed = new Camera(HD720, 30);
         InitParams parameters;
@@ -123,11 +123,11 @@ int main(int argc, char** argv) {
         cv::Mat imleft(height, width, CV_8SC3);
         cv::Mat imdepth(height, width, CV_8UC1);
         cv::Mat imdisp(height, width, CV_8UC3);
-    */ 
+     
         int ConfidenceIdx = 100;
         
         while (ros::ok()){
-    /*
+    
             zed->setConfidenceThreshold(ConfidenceIdx);
             bool res = zed->grab(dm_type); 
 
@@ -140,23 +140,23 @@ int main(int argc, char** argv) {
                 // get right image
                 slMat2cvMat(zed->retrieveImage(SIDE::RIGHT)).copyTo(imright);
                 nm_right = dright + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-                //cv::imwrite(nm_right, imright);
+                cv::imwrite(nm_right, imright);
 
                 // get left image
                 slMat2cvMat(zed->retrieveImage(SIDE::LEFT)).copyTo(imleft);
                 nm_left = dleft + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-                //cv::imwrite(nm_left, imleft);
+                cv::imwrite(nm_left, imleft);
 
                 // get depth image
                 sl::zed::Mat depth = zed->retrieveMeasure(MEASURE::DEPTH);  // get the pointer
                 slMat2cvMat(zed->normalizeMeasure(MEASURE::DEPTH)).copyTo(imdepth);
                 nm_depth = ddepth + to_string(tstamp) + "_" + to_string(cnt) + string(".png");
-                //cv::imwrite(nm_depth, imdepth);
-    */
+                cv::imwrite(nm_depth, imdepth);
+    
                 // publish the name of the image
                 zedpub::Img msg;
                 stringstream ss;
-                ss << to_string(cnt) + string(".png");
+                ss << to_string(id_folder) + "/" + to_string(cnt) + string(".png");
            
                 ros::Time time = ros::Time::now();
                 msg.header.stamp = time;
@@ -165,14 +165,14 @@ int main(int argc, char** argv) {
                 camera_pub.publish(msg);
 
                 cnt++;
-
-    //        }
+            }
 
             ros::spinOnce();
             loop_rate.sleep();
         }
     } else {
         cout << "ERROR: Could not create folder " << output_folder <<endl;
+        return 1;
     }
     return 0;
 }
