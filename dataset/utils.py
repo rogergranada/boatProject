@@ -8,7 +8,25 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 import os
-from os.path import realpath, splitext, basename
+from os.path import realpath, splitext, basename, isfile, join
+import shutil
+
+
+def move_files(inputfile, folder_out, copy_files=True):
+    with open(inputfile) as fin:
+        for line in fin:
+            line = line.strip()
+            if not isfile(line):
+                logger.warning('File {} does not exist!'.format(line))
+                continue
+            fname = basename(line)
+            newfile = join(folder_out, fname)
+            if copy_files:
+                logger.info('Copying: {} -> {}'.format(line, newfile))
+                shutil.copyfile(line, newfile)                
+            else:
+                logger.info('Moving: {} -> {}'.format(line, newfile))
+                shutil.move(line, newfile)
 
 
 def create_paths(inputfolder, fileoutput, path=None):
