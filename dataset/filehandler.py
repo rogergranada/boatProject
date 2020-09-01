@@ -174,6 +174,13 @@ class PathfileHandler(object):
         return n
 
 
+    def header(self):
+        """ Return the first line of the file """
+        with open(self.inputfile) as fin:
+            h = fin.next().strip()
+        return h
+
+
     def get_line(self, nb_line):
         """Returns the line at number `nb_line`"""
         return linecache.getline(self.inputfile, nb_line).strip()

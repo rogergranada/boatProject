@@ -13,6 +13,7 @@ from tkinter import Tk, Label, Listbox, END, N, S, W
 from PIL import Image, ImageTk
 import time
 
+
 class ImageManager(object):
     """
     Class to manage the frames
